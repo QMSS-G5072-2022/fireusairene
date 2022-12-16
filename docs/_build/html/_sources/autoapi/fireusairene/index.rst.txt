@@ -1,0 +1,23 @@
+:py:mod:`fireusairene`
+======================
+
+.. py:module:: fireusairene
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   fireusairene/index.rst
+
+
+Package Contents
+----------------
+
+.. py:data:: __version__
+   
+
+   
+
