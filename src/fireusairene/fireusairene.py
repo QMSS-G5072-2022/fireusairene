@@ -1,0 +1,233 @@
+import pytest
+import requests
+import pandas as pd
+import os
+import json
+from json import dumps, loads
+from pandas import json_normalize
+
+import numpy as np
+import pandas as pd
+
+
+
+
+def get_all_fire_data():
+    """
+This function provides a simple way of accessing the WeatherUSA API and shows all fire data of this API
+
+Parameters:
+-----------
+    None
+
+Returns:
+--------
+    Get access to weatherUSA api, get information about fires happened recently, and if successful returns 
+    your desired data in a dataframe format. 
+
+Example:
+-------
+>>>> get_all_fire_data()
+
+type	id	properties.name	properties.acres	properties.percent_contained	properties.firediscov	properties.last_update	properties.firecause	properties.state	properties.unit_id	properties.support_agency	properties.fire_complex	geometry.type	geometry.coordinates
+0	Feature	2022-CACND-001889	MESA	194	NaN	2022-07-30 23:05:00	2022-12-03 18:45:47	Human	CA	None	None	MESA	Point	[-118.411312349, 35.57421501]
+1	Feature	2022-CAMVU-022881	CORTE MADERA 8 VMP	220	NaN	2022-10-24 18:00:22	2022-12-15 01:18:17	Undetermined	CA	None	None	NULL	Point	[-116.570318802, 32.771501798]
+2	Feature	2022-FLAPQ-002388	APQ Area 4 1129	187	NaN	2022-11-29 22:20:44	2022-12-01 12:26:39	Undetermined	FL	None	None	NULL	Point	[-81.314933061, 27.648945128]
+3	Feature	2022-IASFA-F512208	Squires	113	NaN	2022-12-03 03:57:53	2022-12-13 13:59:19	None	IA	None	None	Squires	Point	[-92.615618302, 41.962702014]
+4	Feature	2022-IDIPF-000212	Diamond Watch	1403	100.0	2022-07-14 22:28:59	2022-12-07 17:08:40	Natural	WA	None	None	Diamond Watch	Point	[-117.058714221, 48.648346255]
+5	Feature	2022-LASBR-000250	Grays Ditch	500	81.0	2022-12-10 01:09:18	2022-12-12 16:26:57	Undetermined	LA	None	None	NULL	Point	[-93.772646595, 29.861605272]
+6	Feature	2022-MAMAS-MA05185	Johnson Quarry	156	100.0	2022-11-21 11:30:02	2022-12-01 20:11:27	Human	MA	None	None	Johnson Quarry	Point	[-70.642450472, 42.668088745]
+7	Feature	2022-MTHLF-000016	Tenmile South Helena Unit 65	397	NaN	2022-02-01 18:11:58	2022-12-06 21:03:02	Undetermined	MT	None	None	NULL	Point	[-112.093712755, 46.580916605]
+8	Feature	2022-OKOKS-221442	East Lake Turn Fire	623	100.0	2022-12-03 21:48:00	2022-12-12 17:23:20	Human	OK	None	None	NULL	Point	[-102.804731496, 36.811395029]
+9	Feature	2022-OR520S-521110	98 Delta	290	100.0	2022-11-16 12:00:00	2022-12-01 16:10:57	Human	OR	None	None	Middle Mable	Point	[-123.711403645, 46.013616485]
+10	Feature	2022-SDSDD-220765	Ruby Flats RX	465	NaN	2022-09-23 14:26:29	2022-12-08 17:48:13	Human	SD	None	None	NULL	Point	[-103.780110446, 44.315827107]
+11	Feature	2022-SDSDS-220876	Rohrbach	4500	100.0	2022-12-06 21:53:06	2022-12-06 22:15:18	Undetermined	SD	None	None	Rohrbach	Point	[-99.509739524, 45.350657581]
+12	Feature	2022-TNTNS-221162	Isha Lane	230	100.0	2022-10-24 15:30:00	2022-12-03 08:04:29	Undetermined	TN	None	None	NULL	Point	[-85.579726851, 35.569451168]
+13	Feature	2022-VAVAS-22WR00640	Hurricane Fire	700	50.0	2022-11-04 19:44:59	2022-12-08 16:23:34	Undetermined	VA	None	None	Hurricane Fire	Point	[-82.14444814, 37.105840522]
+14	Feature	2022-VAVAS-22WR00650	Fall Hurd Fire	220	97.0	2022-11-06 06:59:59	2022-12-08 16:25:37	Undetermined	VA	None	None	NULL	Point	[-83.01972617, 36.626673789]
+15	Feature	2022-WAGPF-000743	GOAT ROCKS	6196	66.0	2022-08-09 16:43:00	2022-12-01 22:39:32	Natural	WA	None	None	Goat Rocks	Point	[-121.517214537, 46.635555651]
+16	Feature	2022-WAMSF-000348	Loch Katrine	1225	100.0	2022-09-02 20:08:00	2022-12-14 18:23:23	Undetermined	WA	None	None	Loch Katrine	Point	[-121.604614783, 47.638905698]
+17	Feature	2022-WASPS-000275	8 ROAD	134	50.0	2022-10-15 23:19:00	2022-12-09 18:01:17	Human	WA	None	None	8 ROAD	Point	[-122.145014677, 46.805515594]
+
+
+Note that this example is showing a dataframe output.
+    
+"""   
+    url = 'https://api.weatherusa.net/v1/fire?'
+    r = requests.get(url)
+    data = r.json()
+    df = json_normalize(data['data']['features'], errors = 'ignore')
+    df.to_pickle('fire_data.csv')
+    return df
+
+def get_fire_by_po_ra(lat, lon,radius):
+    """
+This function provides a simple way of accessing the WeatherUSA API by using coordinates and radium around the
+location given, specifically to look at name, time, fire cause, fire type and state
+
+Parameters:
+-----------
+    lat: The latitude of your desired location 
+    lon: The longitute of your desired location 
+    radius: distance from the coordination
+
+Returns:
+--------
+    Get access to weatherUSA api, get information about fires happened recently using coordinates and radius, and if successful returns your desired data in a dataframe format. 
+
+Example:
+-------
+>>>> get_fire_by_po_ra(-118, 35 , 10000000)
+
+	Name	Time	Fire Cause	Fire Type	State
+0	APQ Area 4 1129	2022-11-29 22:20:44	Undetermined	Point	FL
+
+
+Note that this example is showing a dataframe output.
+    
+"""   
+    url = 'https://api.weatherusa.net/v1/fire?'
+    q = 'q=' + str(lat) + ','+ str(lon) +'&radius='+ str(radius)
+    url += q
+#     print(url)
+    r = requests.get(url)
+    data = r.json()
+    df = data['data']['features']
+    result = []
+    for i in range(len(df)):
+        result.append([df[i]['properties']['name'], df[i]['properties']['firediscov'],df[i]['properties']['firecause'],  df[i]['geometry']['type'],df[i]['properties']['state'] ])
+    result = pd.DataFrame(result)
+    result = result.rename(columns = {0: "Name", 1: "Time", 2: "Fire Cause", 3: "Fire Type", 4: "State"})
+    result.to_pickle('llr.csv')
+    return result
+
+def get_fire_by_state(state):
+    """
+This function provides a simple way of accessing the WeatherUSA API by using states, specifically to look at name, time, fire cause, fire type and precise location
+
+Parameters:
+-----------
+    state: Any state in the United States
+
+Returns:
+--------
+    Get access to weatherUSA api, get information about fires happened recently using states, and if successful returns your desired data in a dataframe format. 
+
+Example:
+-------
+>>>> get_fire_by_state('WA')
+
+Name	Time	Fire Cause	Fire Type	Precise Location
+0	Diamond Watch	2022-07-14 22:28:59	Natural	Point	[-117.058714221, 48.648346255]
+1	GOAT ROCKS	2022-08-09 16:43:00	Natural	Point	[-121.517214537, 46.635555651]
+2	Loch Katrine	2022-09-02 20:08:00	Undetermined	Point	[-121.604614783, 47.638905698]
+3	8 ROAD	2022-10-15 23:19:00	Human	Point	[-122.145014677, 46.805515594]
+
+
+Note that this example is showing a dataframe output.
+    
+"""   
+    url = 'https://api.weatherusa.net/v1/fire?'
+    q = 'state=' + state
+    url += q
+#     print(url)
+    r = requests.get(url)
+    data = r.json()
+#     print ('Status code:',r.status_code)
+    df = data['data']['features']
+    result = []
+    for i in range(len(df)):
+#         print(df[i]['properties']['state'])
+        result.append([df[i]['properties']['name'], df[i]['properties']['firediscov'],df[i]['properties']['firecause'],  df[i]['geometry']['type'],df[i]['geometry']['coordinates'] ])
+    result = pd.DataFrame(result)
+    result = result.rename(columns = {0: "Name", 1: "Time", 2: "Fire Cause", 3: "Fire Type", 4: "Precise Location"})
+    result.to_pickle('st.csv')
+    return result
+
+def get_freq_by_state():
+    """
+This function shows number of fires happend in the US recently by states, in descending order
+
+Parameters:
+-----------
+    None
+
+Returns:
+--------
+    Returns dataframe of states and their corresponding number of fires happened. 
+
+Example:
+-------
+>>>> get_freq_by_state()
+
+	State	number of fires
+0	WY	0
+1	WV	0
+2	WI	0
+3	WA	4
+4	VT	0
+5	VA	2
+6	UT	0
+7	TX	0
+8	TN	1
+9	SD	2
+10	SC	0
+11	RI	0
+12	PA	0
+13	OR	1
+14	OK	1
+15	OH	0
+16	NY	0
+17	NV	0
+18	NM	0
+19	NJ	0
+20	NH	0
+21	NE	0
+22	ND	0
+23	NC	0
+24	MT	1
+25	MS	0
+26	MO	0
+27	MN	0
+28	MI	0
+29	ME	0
+30	MD	0
+31	MA	1
+32	LA	1
+33	KY	0
+34	KS	0
+35	IN	0
+36	IL	0
+37	ID	0
+38	IA	1
+39	HI	0
+40	GA	0
+41	FL	1
+42	DE	0
+43	DC	0
+44	CT	0
+45	CO	0
+46	CA	2
+47	AZ	0
+48	AR	0
+49	AL	0
+50	AK	0
+
+
+Note that this example is showing a dataframe output.
+    
+""" 
+    states = [ 'AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
+           'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
+           'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
+           'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX',
+           'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
+    f = {}
+    for a in states:
+        f[a] = len(get_fire_by_state(a))
+    f = sorted(f.items(), reverse = True)
+    f = pd.DataFrame.from_dict(f)
+    f = f.rename(columns={0: "State", 1: "number of fires"})
+    f.to_pickle('fire_num_state.csv')
+    return f
+
